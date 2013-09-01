@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <errno.h>
 
 void printTimeDifference(struct timeval beforeTime, struct timeval afterTime);
 
@@ -24,7 +25,11 @@ int main(int argc, char* argv[]) {
 		gettimeofday(&afterTime, NULL);
 		printTimeDifference(beforeTime, afterTime);
 	} else {
-		execvp(commandName, arguments);
+		int result = execvp(commandName, arguments);
+		if (result == -1) {
+			printf("Invalid command!\nError Number: %i\n", errno);
+			exit(1);
+		}
 	}
 	
 	return 0;
@@ -37,5 +42,6 @@ void printTimeDifference(struct timeval beforeTime, struct timeval afterTime) {
 		microDifference += 1000000;
 	}
 	difference += microDifference;
-	printf("Clock time: %li\n", difference);
+	difference /= 1000;
+	printf("Wall-Clock time: %li milliseconds\n", difference);
 }
