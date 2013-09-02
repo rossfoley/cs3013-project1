@@ -10,9 +10,12 @@
 #include <errno.h>
 
 long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime);
-void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime);
+void printChildStatistics(struct rusage childStats, struct rusage prevStats, int usePrevStats, struct timeval beforeTime, struct timeval afterTime);
 
 int main(int argc, char* argv[]) {
+    struct rusage prevStats;
+    int prevStatsInitialized = 0;
+
     while (1) {
         printf("-> ");
         char userInput[128];
@@ -77,7 +80,12 @@ int main(int argc, char* argv[]) {
                 getrusage(RUSAGE_CHILDREN, &childStats);
 
                 // Print the statistics
-                printChildStatistics(childStats, beforeTime, afterTime);
+                printChildStatistics(childStats, prevStats, prevStatsInitialized, beforeTime, afterTime);
+
+                // Save the old stats into prevStats
+                prevStats = childStats;
+
+                prevStatsInitialized = 1;
             }
 
         } else {
@@ -117,18 +125,31 @@ long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime) 
 }
 
 // Print the statistics about the child process with the given rusage data
-void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime) {
-    long difference = computeTimeDifference(beforeTime, afterTime);
-    long userCPUTime = (childStats.ru_utime.tv_sec * 1000) + (childStats.ru_utime.tv_usec / 1000);
-    long sysCPUTime = (childStats.ru_stime.tv_sec * 1000) + (childStats.ru_stime.tv_usec / 1000);
+void printChildStatistics(struct rusage childStats, struct rusage prevStats, int usePrevStats, struct timeval beforeTime, struct timeval afterTime) {
+    long difference, userCPUTime, sysCPUTime, volContext, involContext, pageFaults, unrecPageFaults;
+    difference = computeTimeDifference(beforeTime, afterTime);
+    if (usePrevStats) {
+        userCPUTime = ((childStats.ru_utime.tv_sec - prevStats.ru_utime.tv_sec) * 1000) + ((childStats.ru_utime.tv_usec - prevStats.ru_utime.tv_usec) / 1000);
+        sysCPUTime = ((childStats.ru_stime.tv_sec - prevStats.ru_stime.tv_sec) * 1000) + ((childStats.ru_stime.tv_usec - prevStats.ru_stime.tv_usec) / 1000);
+        volContext = childStats.ru_nvcsw - prevStats.ru_nvcsw;
+        involContext = childStats.ru_nivcsw - prevStats.ru_nivcsw;
+        pageFaults = childStats.ru_majflt - prevStats.ru_majflt;
+        unrecPageFaults = childStats.ru_minflt - prevStats.ru_minflt;
+    } else {
+        userCPUTime = (childStats.ru_utime.tv_sec * 1000) + (childStats.ru_utime.tv_usec / 1000);
+        sysCPUTime = (childStats.ru_stime.tv_sec * 1000) + (childStats.ru_stime.tv_usec / 1000);
+        volContext = childStats.ru_nvcsw;
+        involContext = childStats.ru_nivcsw;
+        pageFaults = childStats.ru_majflt;
+        unrecPageFaults = childStats.ru_minflt;
+    }
 
     printf("\n****************************************\n");
     printf("Wall-Clock time: %li milliseconds\n", difference);
     printf("User CPU time: %li milliseconds\n", userCPUTime);
     printf("System CPU time: %li milliseconds\n", sysCPUTime);
-    printf("Voluntary context switches: %li\n", childStats.ru_nvcsw);
-    printf("Involuntary context switches: %li\n", childStats.ru_nivcsw);
-    printf("Page faults: %li\n", childStats.ru_majflt);
-    printf("Page faults that could be satisfied with unreclaimed pages: %li\n", childStats.ru_minflt);
+    printf("Voluntary context switches: %li\n", volContext);
+    printf("Involuntary context switches: %li\n", involContext);
+    printf("Page faults: %li\n", pageFaults);
+    printf("Page faults that could be satisfied with unreclaimed pages: %li\n", unrecPageFaults);
 }
-
