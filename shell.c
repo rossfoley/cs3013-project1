@@ -11,15 +11,16 @@ void printChildStatistics(struct rusage childStats, struct timeval beforeTime, s
 
 int main(int argc, char* argv[]) {
     while (1) {
-        printf("8===D~~~ ");
+        printf("-> ");
         char userInput[128];
         fgets(userInput, 128, stdin);
+
         char* arguments[32];
         char* argument = strtok(userInput, " \n");
+
         int i;
         for (i = 0; i < 32 && argument != NULL; i++) {
             arguments[i] = strdup(argument);
-            printf("Argument %i: %s\n", i+1, argument);
             argument = strtok(NULL, " \n");
         }
 
@@ -28,18 +29,21 @@ int main(int argc, char* argv[]) {
             printf("You are only allowed to use 32 arguments!\n");
             continue;
         }
-        continue;
 
         // Check to see if a command was actually specified
-        if (argc < 2) {
+        if (i < 1) {
             // No command specified, so print an error and exit
             printf("You must specify the command to run!\n");
-            exit(1);
+            continue;
         }
 
         // Extract the command name and the list of arguments
-        char* commandName = argv[1];
-        //char** arguments = &argv[1];
+        char* commandName = arguments[0];
+        printf("this is what we think the command is: %s\n", commandName);
+        int j;
+        for (j = 0; j < i; j++) {
+            printf("Argument %i: %s\n", j, arguments[j]);
+        }
 
         // Fork a child process and get its PID
         int pid = fork();
