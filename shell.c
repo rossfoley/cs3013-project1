@@ -1,4 +1,7 @@
 #include <sys/syscall.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -15,16 +18,15 @@ int main(int argc, char* argv[]) {
         char userInput[128];
         fgets(userInput, 128, stdin);
 
-        char* arguments[32];
+        char* arguments[33];
         char* argument = strtok(userInput, " \n");
-
         int i;
-        for (i = 0; i < 32 && argument != NULL; i++) {
-            arguments[i] = strdup(argument);
+        for (i = 0; i < 33; i++) {
+            arguments[i] = argument;
             argument = strtok(NULL, " \n");
         }
 
-        if (i >= 32) {
+        if (arguments[32] != NULL) {
             // There are too many arguments provided
             printf("You are only allowed to use 32 arguments!\n");
             continue;
@@ -40,9 +42,8 @@ int main(int argc, char* argv[]) {
         // Extract the command name and the list of arguments
         char* commandName = arguments[0];
         printf("this is what we think the command is: %s\n", commandName);
-        int j;
-        for (j = 0; j < i; j++) {
-            printf("Argument %i: %s\n", j, arguments[j]);
+        for (int j = 0; arguments[j] != NULL; j++) {
+            printf("Argument %i: %s\n", j+1, arguments[j]);
         }
 
         // Fork a child process and get its PID
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
             // Check if the command failed
             if (result == -1) {
                 // The command failed, so print out he error number and exit
-                printf("Invalid command!\nError Number: %i\n", errno);
+                printf("Invalid command!\nError Number: %i\nError Message: %s\n", errno, strerror(errno));
                 exit(1);
             }
         }
@@ -120,7 +121,7 @@ void printChildStatistics(struct rusage childStats, struct timeval beforeTime, s
     printf("System CPU time: %li milliseconds\n", sysCPUTime);
     printf("Voluntary context switches: %li\n", childStats.ru_nvcsw);
     printf("Involuntary context switches: %li\n", childStats.ru_nivcsw);
-    printf("Page faults: %li\n", childStats.ru_minflt + childStats.ru_majflt);
-    printf("Page faults that could be satisfied with unreclaimed pages: %li\n", childStats.ru_majflt);
+    printf("Page faults: %li\n", childStats.ru_majflt);
+    printf("Page faults that could be satisfied with unreclaimed pages: %li\n", childStats.ru_minflt);
 }
 

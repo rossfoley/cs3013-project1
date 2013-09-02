@@ -10,7 +10,7 @@ shell: shell.o
 	gcc -o shell shell.o
 
 shell.o: shell.c
-	gcc -c shell.c
+	gcc -c shell.c -std=c99
 
 clean:
 	rm -rf *.o runCommand shell
