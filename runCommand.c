@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #include <errno.h>
 
-void printTimeDifference(struct timeval beforeTime, struct timeval afterTime);
+long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime);
+void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime);
 
 int main(int argc, char* argv[]) {
 	// Check to see if a command was actually specified
@@ -33,9 +35,19 @@ int main(int argc, char* argv[]) {
 		// Wait for the child to finish running the command
 		waitpid(pid, &status, 0);
 
-		// Get the time information after running the command and print the info
-		gettimeofday(&afterTime, NULL);
-		printTimeDifference(beforeTime, afterTime);
+		// If the child terminated normally, print the statistics
+		if (WEXITSTATUS(status) == 0) {
+			// Get the time right after the child process finished
+			gettimeofday(&afterTime, NULL);
+			
+			// Get the statistics of the child process that just finished
+			struct rusage childStats;
+			getrusage(RUSAGE_CHILDREN, &childStats);
+
+			// Print the statistics
+			printChildStatistics(childStats, beforeTime, afterTime);
+		}
+	
 	} else {
 		// We are in the child process
 		// Run the command and get its result
@@ -52,8 +64,8 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-// Print out the difference between the two specified timevals
-void printTimeDifference(struct timeval beforeTime, struct timeval afterTime) {
+// Compute the difference between the two specified timevals
+long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime) {
 	// Get the seconds difference and convert to microseconds
 	long difference = (long) ((afterTime.tv_sec - beforeTime.tv_sec) * 1000000);
 
@@ -68,8 +80,22 @@ void printTimeDifference(struct timeval beforeTime, struct timeval afterTime) {
 	// Add the corrected microsecond difference to the total
 	difference += microDifference;
 
-	// Convert to milliseconds and print the result
-	difference /= 1000;
+	// Convert to milliseconds and return the result
+	return (difference / 1000);
+}
+
+// Print the statistics about the child process with the given rusage data
+void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime) {
+	long difference = computeTimeDifference(beforeTime, afterTime);
+	long userCPUTime = (childStats.ru_utime.tv_sec * 1000) + (childStats.ru_utime.tv_usec / 1000);
+	long sysCPUTime = (childStats.ru_stime.tv_sec * 1000) + (childStats.ru_stime.tv_usec / 1000);
+
 	printf("Wall-Clock time: %li milliseconds\n", difference);
+	printf("User CPU time: %li milliseconds\n", userCPUTime);
+	printf("System CPU time: %li milliseconds\n", sysCPUTime);
+	printf("Voluntary context switches: %li\n", childStats.ru_nvcsw);
+	printf("Involuntary context switches: %li\n", childStats.ru_nivcsw);
+	printf("Page faults: %li\n", childStats.ru_minflt + childStats.ru_majflt);
+	printf("Page faults that could be satisfied with unreclaimed pages: %li\n", childStats.ru_majflt);
 }
 
