@@ -41,9 +41,15 @@ int main(int argc, char* argv[]) {
 
         // Extract the command name and the list of arguments
         char* commandName = arguments[0];
-        printf("this is what we think the command is: %s\n", commandName);
-        for (int j = 0; arguments[j] != NULL; j++) {
-            printf("Argument %i: %s\n", j+1, arguments[j]);
+
+        if (strcmp(commandName, "exit") == 0) {
+            printf("Goodbye!\n");
+            exit(0);   
+        }
+
+        if (strcmp(commandName, "cd") == 0) {
+            chdir(arguments[1]);
+            continue;
         }
 
         // Fork a child process and get its PID
@@ -116,6 +122,7 @@ void printChildStatistics(struct rusage childStats, struct timeval beforeTime, s
     long userCPUTime = (childStats.ru_utime.tv_sec * 1000) + (childStats.ru_utime.tv_usec / 1000);
     long sysCPUTime = (childStats.ru_stime.tv_sec * 1000) + (childStats.ru_stime.tv_usec / 1000);
 
+    printf("\n****************************************\n");
     printf("Wall-Clock time: %li milliseconds\n", difference);
     printf("User CPU time: %li milliseconds\n", userCPUTime);
     printf("System CPU time: %li milliseconds\n", sysCPUTime);
