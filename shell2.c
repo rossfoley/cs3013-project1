@@ -1,20 +1,32 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <errno.h>
 
+#define TRUE 1
+#define FALSE 0
+
 long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime);
-void printChildStatistics(struct rusage childStats, struct rusage prevStats, int usePrevStats, struct timeval beforeTime, struct timeval afterTime);
+void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime);
+
+struct job {
+    int pid;
+    char* command;
+};
+
+struct jobList {
+    struct job *job;
+    struct jobList *nextJob;
+};
 
 int main(int argc, char* argv[]) {
-    struct rusage prevStats;
-    int prevStatsInitialized = 0;
+    struct jobList backgroundJobs;
 
     while (1) {
         printf("-> ");
@@ -58,18 +70,28 @@ int main(int argc, char* argv[]) {
 
         char* arguments[33];
         char* argument = strtok(userInput, " \n");
-        int i;
+        int lastArg = 0, foundLastArg = 0;
 
         // Read in the arguments using strtok()
-        for (i = 0; i < 33; i++) {
+        for (int i = 0; i < 33; i++) {
             arguments[i] = argument;
             argument = strtok(NULL, " \n");
+            if (argument == NULL && !foundLastArg) {
+                foundLastArg = TRUE;
+                lastArg = i;
+            }
         }
 
         if (arguments[32] != NULL) {
             // There are too many arguments provided
             printf("You are only allowed to use 32 arguments!\n");
             continue;
+        }
+
+        int inBackground = FALSE;
+        if (strcmp(arguments[lastArg], "&") == 0) {
+            printf("You want to run this in the background!\n");
+            inBackground = TRUE;
         }
 
         // Extract the command name and the list of arguments
@@ -95,29 +117,25 @@ int main(int argc, char* argv[]) {
             // We are in the parent process
             int status;
             struct timeval beforeTime, afterTime;
+            struct rusage childStats;
 
             // Get the time information before running the command
             gettimeofday(&beforeTime, NULL);
 
             // Wait for the child to finish running the command
-            waitpid(pid, &status, 0);
+            if (!inBackground) {
+                wait4(pid, &status, 0, &childStats);
+            } else {
+                wait4(pid, &status, WNOHANG, &childStats);
+            }
 
             // If the child terminated normally, print the statistics
             if (WEXITSTATUS(status) == 0) {
                 // Get the time right after the child process finished
                 gettimeofday(&afterTime, NULL);
 
-                // Get the statistics of the child process that just finished
-                struct rusage childStats;
-                getrusage(RUSAGE_CHILDREN, &childStats);
-
                 // Print the statistics
-                printChildStatistics(childStats, prevStats, prevStatsInitialized, beforeTime, afterTime);
-
-                // Save the old stats into prevStats
-                prevStats = childStats;
-
-                prevStatsInitialized = 1;
+                printChildStatistics(childStats, beforeTime, afterTime);
             }
 
         } else {
@@ -157,24 +175,15 @@ long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime) 
 }
 
 // Print the statistics about the child process with the given rusage data
-void printChildStatistics(struct rusage childStats, struct rusage prevStats, int usePrevStats, struct timeval beforeTime, struct timeval afterTime) {
+void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime) {
     long difference, userCPUTime, sysCPUTime, volContext, involContext, pageFaults, unrecPageFaults;
     difference = computeTimeDifference(beforeTime, afterTime);
-    if (usePrevStats) {
-        userCPUTime = ((childStats.ru_utime.tv_sec - prevStats.ru_utime.tv_sec) * 1000) + ((childStats.ru_utime.tv_usec - prevStats.ru_utime.tv_usec) / 1000);
-        sysCPUTime = ((childStats.ru_stime.tv_sec - prevStats.ru_stime.tv_sec) * 1000) + ((childStats.ru_stime.tv_usec - prevStats.ru_stime.tv_usec) / 1000);
-        volContext = childStats.ru_nvcsw - prevStats.ru_nvcsw;
-        involContext = childStats.ru_nivcsw - prevStats.ru_nivcsw;
-        pageFaults = childStats.ru_majflt - prevStats.ru_majflt;
-        unrecPageFaults = childStats.ru_minflt - prevStats.ru_minflt;
-    } else {
-        userCPUTime = (childStats.ru_utime.tv_sec * 1000) + (childStats.ru_utime.tv_usec / 1000);
-        sysCPUTime = (childStats.ru_stime.tv_sec * 1000) + (childStats.ru_stime.tv_usec / 1000);
-        volContext = childStats.ru_nvcsw;
-        involContext = childStats.ru_nivcsw;
-        pageFaults = childStats.ru_majflt;
-        unrecPageFaults = childStats.ru_minflt;
-    }
+    userCPUTime = (childStats.ru_utime.tv_sec * 1000) + (childStats.ru_utime.tv_usec / 1000);
+    sysCPUTime = (childStats.ru_stime.tv_sec * 1000) + (childStats.ru_stime.tv_usec / 1000);
+    volContext = childStats.ru_nvcsw;
+    involContext = childStats.ru_nivcsw;
+    pageFaults = childStats.ru_majflt;
+    unrecPageFaults = childStats.ru_minflt;
 
     printf("\n***********************************************************************\n");
     printf("Wall-Clock time: %li milliseconds\n", difference);

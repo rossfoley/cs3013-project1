@@ -1,4 +1,4 @@
-all: runCommand shell
+all: runCommand shell shell2
 
 runCommand: runCommand.o
 	gcc -o runCommand runCommand.o
@@ -9,14 +9,14 @@ runCommand.o: runCommand.c
 shell: shell.o
 	gcc -o shell shell.o
 
-shelldebug: shelldebug.o
-	gcc -o shelldebug shell.o
-
 shell.o: shell.c
 	gcc -c shell.c -std=c99
 
-shelldebug.o: shell.c
-	gcc -g -c shell.c 
+shell2: shell2.o
+	gcc -o shell2 shell2.o
+
+shell2.o: shell2.c
+	gcc -c shell2.c -std=c99
 
 clean:
-	rm -rf *.o runCommand shell
+	rm -rf *.o runCommand shell shell2
