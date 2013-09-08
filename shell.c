@@ -18,8 +18,40 @@ int main(int argc, char* argv[]) {
 
     while (1) {
         printf("-> ");
-        char userInput[128];
-        fgets(userInput, 128, stdin);
+
+        char userInput[129];
+        if (fgets(userInput, 129, stdin) == NULL) {
+            printf("\n");
+            exit(0);
+        }
+
+        if (strlen(userInput) == 0) {
+            continue;
+        }
+
+        // If the last user input character isn't a new line then:
+        // - The string is more than 128 characters, or
+        // - We reached the end of file
+        if (userInput[strlen(userInput)-1] != '\n') {
+            int tooLong = 0;
+            char nextChar;
+
+            // Loop until we reach the end of line or end of file
+            while (((nextChar = getchar()) != '\n') && (nextChar != EOF)) {
+                tooLong = 1;
+            }
+
+            // Check to see if the end of line was reached
+            // If so, print an error and ask for new user input
+            if (tooLong) {
+                printf("Commands must be 128 characters or less!\n");
+                continue;
+            }
+        }
+
+        // Replace the new line character with a null terminator
+        userInput[strlen(userInput)-1] = '\0';
+        printf("User Input: %s\n", userInput);
 
         char* arguments[33];
         char* argument = strtok(userInput, " \n");
@@ -144,7 +176,7 @@ void printChildStatistics(struct rusage childStats, struct rusage prevStats, int
         unrecPageFaults = childStats.ru_minflt;
     }
 
-    printf("\n****************************************\n");
+    printf("\n***********************************************************************\n");
     printf("Wall-Clock time: %li milliseconds\n", difference);
     printf("User CPU time: %li milliseconds\n", userCPUTime);
     printf("System CPU time: %li milliseconds\n", sysCPUTime);
@@ -152,4 +184,5 @@ void printChildStatistics(struct rusage childStats, struct rusage prevStats, int
     printf("Involuntary context switches: %li\n", involContext);
     printf("Page faults: %li\n", pageFaults);
     printf("Page faults that could be satisfied with unreclaimed pages: %li\n", unrecPageFaults);
+    printf("***********************************************************************\n\n");
 }
