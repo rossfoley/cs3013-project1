@@ -10,13 +10,13 @@ shell: shell.o
 	gcc -o shell shell.o
 
 shell.o: shell.c
-	gcc -c shell.c -std=c99
+	gcc -c shell.c -std=gnu99
 
 shell2: shell2.o
 	gcc -o shell2 shell2.o
 
 shell2.o: shell2.c
-	gcc -c shell2.c -std=c99
+	gcc -c shell2.c -std=gnu99
 
 clean:
 	rm -rf *.o runCommand shell shell2
