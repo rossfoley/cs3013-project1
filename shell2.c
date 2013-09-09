@@ -15,6 +15,7 @@
 struct job {
     int pid;
     char* command;
+    struct timeval startTime;
 };
 
 struct jobList {
@@ -24,15 +25,20 @@ struct jobList {
 
 long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime);
 void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime);
-struct jobList* storeBackgroundJob(struct jobList *jobs, int pid, char* command);
+struct jobList* storeBackgroundJob(struct jobList *jobs, int pid, char* command, struct timeval startTime);
 void printBackgroundJobs(struct jobList *jobs, int index);
-void processBackgroundJobs(struct jobList *jobs);
+void processBackgroundJobs(struct jobList *jobs, struct jobList *firstJob);
 void printJobInfo(struct jobList *current, struct jobList *target, int index);
 
 int main(int argc, char* argv[]) {
     struct jobList *backgroundJobs = malloc(sizeof(struct jobList));
 
     while (1) {
+
+        /*****************************
+        * User Prompt and User Input *
+        *****************************/
+
         printf("-> ");
 
         char userInput[129];
@@ -92,6 +98,10 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
+        /*******************
+        * Special Commands *
+        *******************/
+
         int inBackground = FALSE;
 
         // Check to see if this is a background command
@@ -115,10 +125,15 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
+        // If the user typed the jobs command, display the list of background jobs
         if (strcmp(commandName, "jobs") == 0) {
             printBackgroundJobs(backgroundJobs, 1);
             continue;
         }
+
+        /**********************************
+        * Forking and Running the Command *
+        **********************************/
 
         // Fork a child process and get its PID
         int pid = fork();
@@ -140,7 +155,7 @@ int main(int argc, char* argv[]) {
                 result = wait4(pid, &status, WNOHANG, &childStats);
                 if (result <= 0) {
                     // Background task isn't done, so store it in the linked list
-                    struct jobList *newJob = storeBackgroundJob(backgroundJobs, pid, commandName);
+                    struct jobList *newJob = storeBackgroundJob(backgroundJobs, pid, commandName, beforeTime);
 
                     // Print the info about the newly created job
                     printJobInfo(backgroundJobs, newJob, 1);
@@ -150,7 +165,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            processBackgroundJobs(backgroundJobs);
+            processBackgroundJobs(backgroundJobs, backgroundJobs);
 
             // If the child terminated normally, print the statistics
             if (showStats && WEXITSTATUS(status) == 0) {
@@ -177,12 +192,17 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+/************
+* Functions *
+************/
+
 // Add a new job to the linked list of existing background jobs
-struct jobList* storeBackgroundJob(struct jobList *jobs, int pid, char* command) {
+struct jobList* storeBackgroundJob(struct jobList *jobs, int pid, char* command, struct timeval startTime) {
     // Malloc a new job and set its PID and command
     struct job *newJob = malloc(sizeof(struct job));
     newJob->pid = pid;
     newJob->command = strdup(command);
+    newJob->startTime = startTime;
 
     // Check to see if there is already a job in the job list
     if (jobs->job != NULL) {
@@ -223,8 +243,37 @@ void printJobInfo(struct jobList *current, struct jobList *target, int index) {
     }
 }
 
-void processBackgroundJobs(struct jobList *jobs) {
+void processBackgroundJobs(struct jobList *jobs, struct jobList *firstJob) {
+    if (jobs != NULL && jobs->job != NULL) {
+        // Actually process
+        int status, result;
+        struct rusage stats;
+        struct timeval endTime;
+        result = wait4(jobs->job->pid, &status, WNOHANG, &stats);
+        if (result > 0) {
+            // Print the stats
+            gettimeofday(&endTime, NULL);
+            printChildStatistics(stats, jobs->job->startTime, endTime);
+            // Remove from linked list
+            removeBackgroundJob(jobs, firstJob);
+        }
+        processBackgroundJobs(jobs->nextJob, firstJob);
+    }
+}
 
+void removeBackgroundJob(struct jobList *target, struct jobList *current) {
+    if (target == current) {
+        // We are removing the first item
+        *current = *(current->nextJob);
+        // WE DON'T HAVE A FUCKING CLUE RIGHT NOW
+    } else if (target == current->nextJob) {
+        current->nextJob = target->nextJob;
+        free(target->job->command);
+        free(target->job);
+        free(target);
+    } else {
+        removeBackgroundJob(target, current->nextJob);
+    }
 }
 
 // Compute the difference between the two specified timevals
