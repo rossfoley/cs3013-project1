@@ -257,7 +257,7 @@ void processBackgroundJobs(struct jobList *jobs, struct jobList **firstJob) {
         if (result > 0) {
             // Print the stats
             gettimeofday(&endTime, NULL);
-            printJobInfo(jobs, *firstJob, 1);
+            printf("Job \"%s\" with PID %i has finished.\n", jobs->job->command, jobs->job->pid);
             printChildStatistics(stats, jobs->job->startTime, endTime);
             // Remove from linked list
             removeBackgroundJob(jobs, firstJob);
