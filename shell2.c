@@ -46,6 +46,14 @@ int main(int argc, char* argv[]) {
 
         // If fgets returns NULL, then we reached the end of file
         if (fgets(userInput, 129, stdin) == NULL) {
+            processBackgroundJobs(backgroundJobs, &backgroundJobs);
+            if (!(backgroundJobs->job == NULL && backgroundJobs->nextJob == NULL)) {
+                printf("There are still background jobs that haven't completed.\n");
+                printf("Waiting for them to complete.\n\n");
+                while (!(backgroundJobs->job == NULL && backgroundJobs->nextJob == NULL)) {
+                    processBackgroundJobs(backgroundJobs, &backgroundJobs);
+                }
+            }
             printf("\n");
             exit(0);
         }
