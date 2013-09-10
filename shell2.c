@@ -117,6 +117,13 @@ int main(int argc, char* argv[]) {
         // If the user typed the exit command, exit the shell
         if (strcmp(commandName, "exit") == 0) {
             processBackgroundJobs(backgroundJobs, &backgroundJobs);
+            if (!(backgroundJobs->job == NULL && backgroundJobs->nextJob == NULL)) {
+                printf("There are still background jobs that haven't completed.\n");
+                printf("Waiting for them to complete.\n\n");
+                while (!(backgroundJobs->job == NULL && backgroundJobs->nextJob == NULL)) {
+                    processBackgroundJobs(backgroundJobs, &backgroundJobs);
+                }
+            }
             printf("Goodbye!\n");
             exit(0);   
         }
