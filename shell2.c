@@ -27,8 +27,9 @@ long computeTimeDifference(struct timeval beforeTime, struct timeval afterTime);
 void printChildStatistics(struct rusage childStats, struct timeval beforeTime, struct timeval afterTime);
 struct jobList* storeBackgroundJob(struct jobList *jobs, int pid, char* command, struct timeval startTime);
 void printBackgroundJobs(struct jobList *jobs, int index);
-void processBackgroundJobs(struct jobList *jobs, struct jobList *firstJob);
+void processBackgroundJobs(struct jobList *jobs, struct jobList **firstJob);
 void printJobInfo(struct jobList *current, struct jobList *target, int index);
+void removeBackgroundJob(struct jobList *target, struct jobList **current);
 
 int main(int argc, char* argv[]) {
     struct jobList *backgroundJobs = malloc(sizeof(struct jobList));
@@ -115,18 +116,21 @@ int main(int argc, char* argv[]) {
 
         // If the user typed the exit command, exit the shell
         if (strcmp(commandName, "exit") == 0) {
+            processBackgroundJobs(backgroundJobs, &backgroundJobs);
             printf("Goodbye!\n");
             exit(0);   
         }
 
         // If the user typed the cd command, switch to the specified directory
         if (strcmp(commandName, "cd") == 0) {
+            processBackgroundJobs(backgroundJobs, &backgroundJobs);
             chdir(arguments[1]);
             continue;
         }
 
         // If the user typed the jobs command, display the list of background jobs
         if (strcmp(commandName, "jobs") == 0) {
+            processBackgroundJobs(backgroundJobs, &backgroundJobs);
             printBackgroundJobs(backgroundJobs, 1);
             continue;
         }
@@ -144,6 +148,9 @@ int main(int argc, char* argv[]) {
             int status, result, showStats = TRUE;
             struct timeval beforeTime, afterTime;
             struct rusage childStats;
+
+            // Check to see if any of the background jobs finished
+            processBackgroundJobs(backgroundJobs, &backgroundJobs);
 
             // Get the time information before running the command
             gettimeofday(&beforeTime, NULL);
@@ -164,8 +171,6 @@ int main(int argc, char* argv[]) {
                     showStats = FALSE;
                 }
             }
-
-            processBackgroundJobs(backgroundJobs, backgroundJobs);
 
             // If the child terminated normally, print the statistics
             if (showStats && WEXITSTATUS(status) == 0) {
@@ -238,14 +243,13 @@ void printBackgroundJobs(struct jobList *current, int index) {
 void printJobInfo(struct jobList *current, struct jobList *target, int index) {
     if (current == target) {
         printf("[%i] %i %s\n", index, target->job->pid, target->job->command);
-    } else {
+    } else if (current != NULL) {
         printJobInfo(current->nextJob, target, index + 1);
     }
 }
 
-void processBackgroundJobs(struct jobList *jobs, struct jobList *firstJob) {
-    if (jobs != NULL && jobs->job != NULL) {
-        // Actually process
+void processBackgroundJobs(struct jobList *jobs, struct jobList **firstJob) {
+    if ((jobs != NULL) && (jobs->job != NULL)) {
         int status, result;
         struct rusage stats;
         struct timeval endTime;
@@ -253,6 +257,7 @@ void processBackgroundJobs(struct jobList *jobs, struct jobList *firstJob) {
         if (result > 0) {
             // Print the stats
             gettimeofday(&endTime, NULL);
+            printJobInfo(jobs, *firstJob, 1);
             printChildStatistics(stats, jobs->job->startTime, endTime);
             // Remove from linked list
             removeBackgroundJob(jobs, firstJob);
@@ -261,18 +266,20 @@ void processBackgroundJobs(struct jobList *jobs, struct jobList *firstJob) {
     }
 }
 
-void removeBackgroundJob(struct jobList *target, struct jobList *current) {
-    if (target == current) {
+void removeBackgroundJob(struct jobList *target, struct jobList **current) {
+    if ((*current)->nextJob == NULL) {
+        // There is only one item in the list
+        (*current)->job = NULL;
+    } else if (target == (*current)) {
         // We are removing the first item
-        *current = *(current->nextJob);
-        // WE DON'T HAVE A FUCKING CLUE RIGHT NOW
-    } else if (target == current->nextJob) {
-        current->nextJob = target->nextJob;
+        *current = (*current)->nextJob;
+    } else if (target == (*current)->nextJob) {
+        (*current)->nextJob = target->nextJob;
         free(target->job->command);
         free(target->job);
         free(target);
     } else {
-        removeBackgroundJob(target, current->nextJob);
+        removeBackgroundJob(target, &(*current)->nextJob);
     }
 }
 
