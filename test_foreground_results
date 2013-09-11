@@ -1,0 +1,76 @@
+total 136
+drwxrwxr-x  3 lgmclaughlin lgmclaughlin  4096 Sep 10 19:03 .
+drwxr-xr-x 30 lgmclaughlin lgmclaughlin  4096 Sep 10 18:51 ..
+drwxrwxr-x  8 lgmclaughlin lgmclaughlin  4096 Sep  9 19:31 .git
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin     7 Aug 31 17:46 .gitignore
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin     0 Aug 31 17:45 .gitignore~
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin   353 Sep  9 19:10 Makefile
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin   232 Sep  1 19:16 Makefile~
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  8388 Sep  9 20:26 project1_first_submission.zip
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  1827 Sep  9 20:17 README.txt
+-rwxrwxr-x  1 lgmclaughlin lgmclaughlin  7559 Sep  9 19:04 runCommand
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  3469 Sep  1 17:43 runCommand.c
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  3443 Sep  1 17:42 runCommand.c~
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  2684 Sep  9 19:04 runCommand.o
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin     0 Sep 10 19:01 runCommand_tests
+-rwxrwxr-x  1 lgmclaughlin lgmclaughlin 11913 Sep  9 19:04 shell
+-rwxrwxr-x  1 lgmclaughlin lgmclaughlin 12157 Sep  9 19:29 shell2
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin 12788 Sep  9 19:29 shell2.c
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  6448 Sep  9 19:29 shell2.o
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  7296 Sep  8 16:46 shell.c
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  3469 Sep  1 19:19 shell.c~
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin  4336 Sep  9 19:04 shell.o
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin    42 Sep  9 20:17 test_background
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin    29 Sep  9 20:18 test_foreground
+-rw-rw-r--  1 lgmclaughlin lgmclaughlin     0 Sep 10 19:03 test_foreground_results
+-> 
+***********************************************************************
+Wall-Clock time: 27 milliseconds
+User CPU time: 4 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 2
+Involuntary context switches: 50
+Page faults: 1
+Page faults that could be satisfied with unreclaimed pages: 398
+***********************************************************************
+
+/home/lgmclaughlin/Project 1 lgmclaughlin rpfoley
+-> 
+***********************************************************************
+Wall-Clock time: 11 milliseconds
+User CPU time: 0 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 3
+Involuntary context switches: 2
+Page faults: 1
+Page faults that could be satisfied with unreclaimed pages: 185
+***********************************************************************
+
+/home/lgmclaughlin
+-> -> 
+***********************************************************************
+Wall-Clock time: 1 milliseconds
+User CPU time: 0 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 1
+Involuntary context switches: 2
+Page faults: 0
+Page faults that could be satisfied with unreclaimed pages: 186
+***********************************************************************
+
+core	   examples.desktop  Project 0 lgmclaughlin	     Templates
+Desktop    lkm_project	     Project_0_lgmclaughlin.zip      testcalls
+Documents  Music	     Project 1 lgmclaughlin rpfoley  Ubuntu One
+Downloads  Pictures	     Public			     Videos
+0.00user 0.00system 0:00.00elapsed 0%CPU (0avgtext+0avgdata 3504maxresident)k
+0inputs+0outputs (0major+272minor)pagefaults 0swaps
+-> 
+***********************************************************************
+Wall-Clock time: 8 milliseconds
+User CPU time: 0 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 3
+Involuntary context switches: 134
+Page faults: 0
+Page faults that could be satisfied with unreclaimed pages: 437
+***********************************************************************

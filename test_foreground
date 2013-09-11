@@ -1,4 +1,5 @@
 ls -al
-cat shell.c
+pwd
+cd ..
+pwd
 time ls
-

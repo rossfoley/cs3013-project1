@@ -1,0 +1,10 @@
+Project 1
+Ross Foley and Lucas McLaughlin
+
+The final shell2 program contains everything that was in shell.c, but adds the capability to run background jobs. To do this, we realized we would have to keep track of background jobs. We decided on creating our own linked list data structure using the combination of two structs: job and jobList.  The job struct holds the information about the background job, including PID, command, and start time.  The jobList struct holds a pointer to a job struct as well as a pointer to the next jobList.  
+
+After a command is run, we check to see if any of the background jobs have completed by looping through the linked list and running wait4(WNOHANG) on the job's PID.  If a job is completed, we display that job's information and then print the statistics gathered from the rusage struct.  Then, we remove the job from the linked list by setting the "nextJob" of the previous item in the list to the "nextJob" of the completed job.
+
+We also have a handful of special commands, such as exit, cd, and jobs. In each one, the background jobs are processed, and in exit, we wait until all of the background jobs have completed before actually exiting the program.
+
+We tested the program by running commands inside of the shell to make sure that they finish with accurate statistics, as well as using text files as input to the shell.  We used two text files to test the functionality of the shell.  In one file we have several commands that run in the foreground to make sure that they all run correctly and that the shell exits when it reaches the end of file.  In the other file, we test the background jobs by running several sleep commands in the background and making sure that they finish in the right order and that the shell doesn't exit until all of the sleep commands have finished.

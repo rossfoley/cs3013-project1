@@ -1,0 +1,54 @@
+-> [1] 2870 sleep
+-> [2] 2871 sleep
+-> [3] 2872 sleep
+-> [4] 2873 sleep
+-> There are still background jobs that haven't completed.
+Waiting for them to complete.
+
+Job "sleep" with PID 2871 has finished.
+
+***********************************************************************
+Wall-Clock time: 5003 milliseconds
+User CPU time: 0 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 2
+Involuntary context switches: 0
+Page faults: 0
+Page faults that could be satisfied with unreclaimed pages: 186
+***********************************************************************
+
+Job "sleep" with PID 2872 has finished.
+
+***********************************************************************
+Wall-Clock time: 8010 milliseconds
+User CPU time: 0 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 2
+Involuntary context switches: 0
+Page faults: 0
+Page faults that could be satisfied with unreclaimed pages: 185
+***********************************************************************
+
+Job "sleep" with PID 2870 has finished.
+
+***********************************************************************
+Wall-Clock time: 10003 milliseconds
+User CPU time: 0 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 2
+Involuntary context switches: 0
+Page faults: 0
+Page faults that could be satisfied with unreclaimed pages: 186
+***********************************************************************
+
+Job "sleep" with PID 2873 has finished.
+
+***********************************************************************
+Wall-Clock time: 15010 milliseconds
+User CPU time: 0 milliseconds
+System CPU time: 0 milliseconds
+Voluntary context switches: 2
+Involuntary context switches: 0
+Page faults: 0
+Page faults that could be satisfied with unreclaimed pages: 185
+***********************************************************************

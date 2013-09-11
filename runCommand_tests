@@ -1,0 +1,5 @@
+Here are the commands that we used to verify that our runCommand program was working properly:
+./runCommand ls
+./runCommand pwd
+./runCommand cat shell.c
+./runCommand time ls
